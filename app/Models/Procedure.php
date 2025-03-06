@@ -1,0 +1,28 @@
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+
+class Procedure extends Model
+{
+    use HasFactory;
+
+    protected $table = 'procedures'; // Ensure the table name is correct
+    protected $primaryKey = 'procedure_id'; // Specify the primary key column
+
+    protected $fillable = [
+        'procedure_name', // The name of the procedure
+        'created_at',     // Timestamp for when the record was created
+        'updated_at',     // Timestamp for when the record was last updated
+    ];
+
+    public $timestamps = true; // Ensure timestamps are managed automatically
+
+    // Relationship to Scheme
+    public function chronic()
+    {
+        return $this->belongsTo(Chronic::class, 'procedure_id');
+    }
+}
