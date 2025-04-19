@@ -14,6 +14,7 @@ return new class extends Migration
             $table->decimal('latitude', 9, 6);
             $table->decimal('longitude', 9, 6);
             $table->timestamps();
+            $table->softDeletes(); // Adds deleted_at column for soft deletes
         });
     }
 

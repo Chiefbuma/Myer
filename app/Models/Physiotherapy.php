@@ -58,16 +58,32 @@ class Physiotherapy extends Model
         'medication_usage',
         'therapist_notes',
         'revenue',
+        'deleted_at', // Include for mass assignment if needed
     ];
 
     protected $casts = [
         'visit_date' => 'date',
         'revenue' => 'decimal:2',
+        'deleted_at' => 'datetime', // Cast deleted_at as datetime
     ];
 
-    // User.php (or the relevant model)
+    public function patient()
+    {
+        return $this->belongsTo(Patient::class, 'patient_id');
+    }
+
     public function scheme()
     {
         return $this->belongsTo(Scheme::class, 'scheme_id');
+    }
+
+    public function procedure()
+    {
+        return $this->belongsTo(Procedure::class, 'procedure_id');
+    }
+
+    public function speciality()
+    {
+        return $this->belongsTo(Specialist::class, 'speciality_id');
     }
 }

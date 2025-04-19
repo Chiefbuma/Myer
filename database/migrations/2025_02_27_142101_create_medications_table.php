@@ -16,6 +16,7 @@ return new class extends Migration
             $table->text('formulation')->nullable();
             $table->text('category')->nullable();
             $table->timestamps();
+            $table->softDeletes(); // Adds deleted_at column for soft deletes
         });
     }
 

@@ -41,6 +41,7 @@ class Psychosocial extends Model
         'revenue',
         'scheme_id',
         'visit_date',
+        'deleted_at', // Include for mass assignment if needed
     ];
 
     protected $casts = [
@@ -48,11 +49,27 @@ class Psychosocial extends Model
         'next_review' => 'date',
         'visit_date' => 'date',
         'revenue' => 'int',
+        'deleted_at' => 'datetime', // Cast deleted_at as datetime
     ];
 
-    // User.php (or the relevant model)
+
+    public function patient()
+    {
+        return $this->belongsTo(Patient::class, 'patient_id');
+    }
+
     public function scheme()
     {
         return $this->belongsTo(Scheme::class, 'scheme_id');
+    }
+
+    public function procedure()
+    {
+        return $this->belongsTo(Procedure::class, 'procedure_id');
+    }
+
+    public function speciality()
+    {
+        return $this->belongsTo(Specialist::class, 'speciality_id');
     }
 }

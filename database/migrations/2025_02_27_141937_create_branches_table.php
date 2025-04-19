@@ -12,6 +12,7 @@ return new class extends Migration
             $table->id('branch_id');
             $table->string('branch_name', 100);
             $table->timestamps();
+            $table->softDeletes(); // Adds deleted_at column for soft deletes
         });
     }
 

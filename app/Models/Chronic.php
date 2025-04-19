@@ -17,6 +17,7 @@ class Chronic extends Model
     use HasFactory;
 
     protected $table = 'chronic';
+    protected $primaryKey = 'chronic_id'; // Specify the primary key column
 
     protected $fillable = [
         'procedure_id',
@@ -35,6 +36,7 @@ class Chronic extends Model
         'patient_id',
         'scheme_id',
         'last_visit',
+        'deleted_at', // Include for mass assignment if needed
     ];
 
     protected $casts = [
@@ -43,21 +45,26 @@ class Chronic extends Model
         'specialist_review' => 'date',
         'last_visit' => 'date',
         'revenue' => 'decimal:2',
+        'deleted_at' => 'datetime', // Cast deleted_at as datetime
     ];
+
+    public function patient()
+    {
+        return $this->belongsTo(Patient::class, 'patient_id');
+    }
 
     public function scheme()
     {
-        return $this->belongsTo(Scheme::class, 'scheme_id', 'scheme_id');
+        return $this->belongsTo(Scheme::class, 'scheme_id');
     }
-    // Relationship to Procedure
-    public function procedures()
+
+    public function procedure()
     {
         return $this->belongsTo(Procedure::class, 'procedure_id');
     }
 
-    // Relationship to Specialist
-    public function specialist()
+    public function speciality()
     {
-        return $this->belongsTo(Specialist::class, 'specialist_id');
+        return $this->belongsTo(Specialist::class, 'speciality_id');
     }
 }

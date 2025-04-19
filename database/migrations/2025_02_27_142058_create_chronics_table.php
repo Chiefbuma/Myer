@@ -27,6 +27,7 @@ return new class extends Migration
             $table->unsignedBigInteger('scheme_id')->nullable();
             $table->date('last_visit')->nullable();
             $table->timestamps();
+            $table->softDeletes(); // Adds deleted_at column for soft deletes
         });
     }
 

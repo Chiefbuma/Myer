@@ -33,11 +33,21 @@ class Patient extends Model
         'diagnosis_id',
         'scheme_id',
         'route_id',
+        'deleted_at', // Include for mass assignment if needed
     ];
 
     protected $casts = [
         'dob' => 'date',
+        'deleted_at' => 'datetime', // Cast deleted_at as datetime
     ];
+
+
+
+    // Add this accessor to combine first and last names
+    public function getFullNameAttribute()
+    {
+        return trim($this->firstname . ' ' . $this->lastname);
+    }
 
     public function cohort()
     {

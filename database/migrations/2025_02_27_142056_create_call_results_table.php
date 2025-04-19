@@ -12,6 +12,7 @@ return new class extends Migration
             $table->id('Call_results_id');
             $table->string('Call_result', 255);
             $table->timestamps();
+            $table->softDeletes(); // Adds deleted_at column for soft deletes
         });
     }
 

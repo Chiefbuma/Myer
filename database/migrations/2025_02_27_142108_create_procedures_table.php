@@ -13,6 +13,7 @@ return new class extends Migration
             $table->string('procedure_name', 255);
             $table->unsignedBigInteger('patient_id')->nullable();
             $table->timestamps();
+            $table->softDeletes(); // Adds deleted_at column for soft deletes
         });
     }
 

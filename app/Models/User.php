@@ -2,47 +2,76 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Filament\Models\Contracts\FilamentUser;
+use Filament\Panel;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use App\Models\Branch;
+use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Database\Eloquent\Prunable; // Optional for automatic cleanup
 
-class User extends Authenticatable
+class User extends Authenticatable implements FilamentUser
 {
-    /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasFactory, Notifiable;
+    use HasFactory, Notifiable, SoftDeletes;
 
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var list<string>
-     */
     protected $fillable = [
         'name',
         'email',
         'password',
+        'remember_token',
+        'role',
+        'branch_id',
+        'deleted_at', // Add this if you want to allow mass assignment
     ];
 
-    /**
-     * The attributes that should be hidden for serialization.
-     *
-     * @var list<string>
-     */
     protected $hidden = [
         'password',
         'remember_token',
     ];
 
-    /**
-     * Get the attributes that should be cast.
-     *
-     * @return array<string, string>
-     */
-    protected function casts(): array
+    protected $attributes = [
+        'role' => 'admin', // Set default role to 'admin'
+    ];
+
+    protected $casts = [
+        'email_verified_at' => 'datetime',
+        'password' => 'hashed',
+        'deleted_at' => 'datetime', // Cast deleted_at as datetime
+    ];
+
+    // Define roles as constants
+    const ROLE_ADMIN = 'admin';
+    const ROLE_USER = 'user';
+
+    public static function getRoles(): array
     {
         return [
-            'email_verified_at' => 'datetime',
-            'password' => 'hashed',
+            self::ROLE_ADMIN => 'Admin',
+            self::ROLE_USER => 'User',
         ];
+    }
+
+    public function isAdmin(): bool
+    {
+        return $this->role === self::ROLE_ADMIN;
+    }
+
+    public function canAccessPanel(Panel $panel): bool
+    {
+        // Only allow non-deleted users to access the panel
+        return $this->deleted_at === null;
+    }
+
+    public function canDelete(): bool
+    {
+        // Prevent users from deleting themselves and ensure only admins can delete
+        return true;
+    }
+
+    // Relationship to Branch model
+    public function branch()
+    {
+        return $this->belongsTo(Branch::class, 'branch_id', 'branch_id');
     }
 }

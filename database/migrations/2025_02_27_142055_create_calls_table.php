@@ -14,6 +14,8 @@ return new class extends Migration
             $table->enum('call_results', ['Reviewed', 'Refilled', 'Not Received', 'Not Reachable']);
             $table->date('call_date')->nullable();
             $table->timestamps();
+            $table->softDeletes(); // Adds deleted_at column for soft deletes
+
         });
     }
 

@@ -12,6 +12,7 @@ return new class extends Migration
             $table->id('diagnosis_id');
             $table->string('diagnosis_name', 255);
             $table->timestamps();
+            $table->softDeletes(); // Adds deleted_at column for soft deletes
         });
     }
 

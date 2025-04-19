@@ -2,6 +2,7 @@
 
 namespace App\Providers\Filament;
 
+use Filament\Contracts\Plugin;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
@@ -27,6 +28,7 @@ class HomePanelProvider extends PanelProvider
             ->id('home')
             ->path('home')
             ->login()
+            ->registration()
             ->colors([
                 'primary' => Color::Amber,
             ])
@@ -39,6 +41,9 @@ class HomePanelProvider extends PanelProvider
             ->widgets([
                 Widgets\AccountWidget::class,
                 Widgets\FilamentInfoWidget::class,
+            ])
+            ->plugins([
+                \BezhanSalleh\FilamentShield\FilamentShieldPlugin::make(),
             ])
             ->middleware([
                 EncryptCookies::class,

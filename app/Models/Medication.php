@@ -13,6 +13,8 @@ class Medication extends Model
 
     protected $table = 'medication';
 
+
+
     protected $fillable = [
         'medication_id',
         'item_name',
@@ -22,6 +24,11 @@ class Medication extends Model
         'category',
         'created_at',
         'updated_at',
+        'deleted_at', // Include for mass assignment if needed
+    ];
+
+    protected $casts = [
+        'deleted_at' => 'datetime', // Cast deleted_at as datetime
     ];
 
     protected $primaryKey = 'medication_id';

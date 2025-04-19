@@ -907,7 +907,7 @@ class ManagePatient extends Page
 
                         ]),
 
-
+                    // In your getFormSchema() method, update the Medication Use tab:
                     Tabs\Tab::make('Medication Use')
                         ->schema([
                             Section::make('Medication Use')
@@ -944,24 +944,38 @@ class ManagePatient extends Page
                                                 ->required(),
                                         ])
                                         ->columns(5)
-                                        ->default($this->medication_use_records), // Populate with existing records
-
-                                    // Save button outside the Repeater
-                                    Actions::make([
-                                        FormAction::make('saveMedicationUse')
-                                            ->label('Save Medication Use')
-                                            ->action('saveCalls'),
-                                    ]),
-                                ])
-                                ->extraAttributes([
-                                    'style' => 'background-color: grey; color: white; padding: 1rem; font-size: 1.25rem;', // Custom styles
-
+                                        ->default($this->medication_use_records) // Populate with existing records
+                                        ->createItemButtonLabel('Add Medication Record')
+                                        ->collapsible()
+                                        ->cloneable()
+                                        ->itemLabel(fn(array $state): ?string => $this->getMedicationName($state['medication_id'] ?? null) . ' - ' . ($state['frequency'] ?? '')),
                                 ]),
+                            Actions::make([
+                                FormAction::make('saveMedicationUse')
+                                    ->label('Save Medication Use')
+                                    ->action('saveMedicationUse'),
+                            ]),
+                        ])
+                        ->extraAttributes([
+                            'style' => 'background-color: grey; color: white; padding: 1rem; font-size: 1.25rem;',
+
+
 
                         ]),
                 ]),
         ];
     }
+
+    protected function getMedicationName($medicationId): string
+    {
+        if (!$medicationId) return 'New Medication';
+
+        $medication = collect($this->medications)
+            ->firstWhere('medication_id', $medicationId);
+
+        return $medication['item_name'] ?? 'Unknown Medication';
+    }
+
 
     // Save All Data (Global Save)
     public function saveAll(): void
@@ -1074,40 +1088,56 @@ class ManagePatient extends Page
         $this->resetChronicForm();
     }
 
-    // Save Medication Use Data
+    // Update your saveMedicationUse method:
     public function saveMedicationUse(): void
     {
         $this->validate([
             'medication_use_records' => 'required|array',
             'medication_use_records.*.medication_id' => 'required|exists:medication,medication_id',
-            'medication_use_records.*.days_supplied' => 'required|numeric',
-            'medication_use_records.*.no_pills_dispensed' => 'required|numeric',
-            'medication_use_records.*.frequency' => 'required',
+            'medication_use_records.*.days_supplied' => 'required|numeric|min:1',
+            'medication_use_records.*.no_pills_dispensed' => 'required|numeric|min:1',
+            'medication_use_records.*.frequency' => 'required|in:daily,weekly,monthly',
             'medication_use_records.*.medication_visit_date' => 'required|date',
         ]);
 
         DB::transaction(function () {
+            // First delete any existing records not in the current submission
+            $existingIds = collect($this->medication_use_records)
+                ->filter(fn($record) => isset($record['id']))
+                ->pluck('id')
+                ->toArray();
+
+            MedicationUse::where('patient_id', $this->record->patient_id)
+                ->whereNotIn('medication_use_id', $existingIds)
+                ->delete();
+
+            // Create/update records
             foreach ($this->medication_use_records as $record) {
-                MedicationUse::updateOrCreate(
-                    ['medication_id' => $record['medication_id'] ?? null], // Update if ID exists, otherwise create a new record
-                    [
-                        'patient_id' => $this->record->patient_id,
-                        'medication_id' => $record['medication_id'],
-                        'days_supplied' => $record['days_supplied'],
-                        'no_pills_dispensed' => $record['no_pills_dispensed'],
-                        'frequency' => $record['frequency'],
-                        'visit_date' => $record['medication_visit_date'],
-                    ]
-                );
+                $data = [
+                    'patient_id' => $this->record->patient_id,
+                    'medication_id' => $record['medication_id'],
+                    'days_supplied' => $record['days_supplied'],
+                    'no_pills_dispensed' => $record['no_pills_dispensed'],
+                    'frequency' => $record['frequency'],
+                    'visit_date' => $record['medication_visit_date'],
+                ];
+
+                if (isset($record['id'])) {
+                    MedicationUse::where('medication_use_id', $record['id'])
+                        ->update($data);
+                } else {
+                    MedicationUse::create($data);
+                }
             }
         });
 
         Notification::make()
-            ->title('Medication Use Data saved successfully')
+            ->title('Medication Use saved successfully')
             ->success()
             ->send();
 
-        $this->medication_use_records = $this->getMedicationUseRecords(); // Refresh the form data
+        // Refresh the form data
+        $this->medication_use_records = $this->getMedicationUseRecords();
     }
 
     // Save Physiotherapy Data

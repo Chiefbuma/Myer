@@ -13,6 +13,7 @@ return new class extends Migration
             $table->string('cohort_name', 100);
             $table->string('team_lead', 100);
             $table->timestamps();
+            $table->softDeletes(); // Adds deleted_at column for soft deletes
         });
     }
 

@@ -17,6 +17,11 @@ class Specialist extends Model
         'specialty',       // The specialty of the specialist
         'created_at',      // Timestamp for when the record was created
         'updated_at',      // Timestamp for when the record was last updated
+        'deleted_at', // Include for mass assignment if needed
+    ];
+
+    protected $casts = [
+        'deleted_at' => 'datetime', // Cast deleted_at as datetime
     ];
 
     public $timestamps = true; // Ensure timestamps are managed automatically

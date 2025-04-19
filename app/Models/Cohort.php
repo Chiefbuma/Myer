@@ -16,8 +16,13 @@ class Cohort extends Model
     protected $fillable = [
 
         'cohort_name',
-        'team_lead'
+        'team_lead',
+        'deleted_at', // Include for mass assignment if needed
 
+    ];
+
+    protected $casts = [
+        'deleted_at' => 'datetime', // Cast deleted_at as datetime
     ];
 
 

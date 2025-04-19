@@ -13,6 +13,7 @@ return new class extends Migration
             $table->string('scheme_name', 100);
             $table->string('payment_method', 50);
             $table->timestamps();
+            $table->softDeletes(); // Adds deleted_at column for soft deletes
         });
     }
 

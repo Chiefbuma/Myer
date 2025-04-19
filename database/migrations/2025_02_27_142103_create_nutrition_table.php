@@ -28,6 +28,7 @@ return new class extends Migration
             $table->double('revenue')->nullable();
             $table->date('visit_date')->nullable();
             $table->timestamps();
+            $table->softDeletes(); // Adds deleted_at column for soft deletes
         });
     }
 

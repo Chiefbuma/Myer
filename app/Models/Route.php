@@ -19,6 +19,12 @@ class Route extends Model
         'route_name',
         'latitude',
         'longitude',
+        'deleted_at', // Include for mass assignment if needed
+
+    ];
+
+    protected $casts = [
+        'deleted_at' => 'datetime', // Cast deleted_at as Carbon instance
     ];
 
     //protected $casts = [

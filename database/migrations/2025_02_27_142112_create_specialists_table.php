@@ -13,6 +13,7 @@ return new class extends Migration
             $table->string('specialist_name', 100);
             $table->string('specialty', 100);
             $table->timestamps();
+            $table->softDeletes(); // Adds deleted_at column for soft deletes
         });
     }
 

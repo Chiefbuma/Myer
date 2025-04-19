@@ -15,6 +15,10 @@ class Nutrition extends Model
     use HasFactory;
 
     protected $table = 'nutrition';
+    protected $primaryKey = 'nutrition_id';
+
+    public $incrementing = true; // Only if nutrition_id is not auto-incrementing
+
 
     protected $fillable = [
         'scheme_id',
@@ -34,6 +38,7 @@ class Nutrition extends Model
         'nutrition_assessment_remarks',
         'revenue',
         'visit_date',
+        'deleted_at', // Include for mass assignment if needed
     ];
 
     protected $casts = [
@@ -41,11 +46,26 @@ class Nutrition extends Model
         'next_review' => 'date',
         'visit_date' => 'date',
         'revenue' => 'double',
+        'deleted_at' => 'datetime', // Cast deleted_at as datetime
     ];
 
-    // User.php (or the relevant model)
+    public function patient()
+    {
+        return $this->belongsTo(Patient::class, 'patient_id');
+    }
+
     public function scheme()
     {
         return $this->belongsTo(Scheme::class, 'scheme_id');
+    }
+
+    public function procedure()
+    {
+        return $this->belongsTo(Procedure::class, 'procedure_id');
+    }
+
+    public function speciality()
+    {
+        return $this->belongsTo(Specialist::class, 'speciality_id');
     }
 }

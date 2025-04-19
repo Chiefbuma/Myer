@@ -9,77 +9,57 @@ use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Hash;
 
 class UserResource extends Resource
 {
     protected static ?string $model = User::class;
-
     protected static ?string $navigationIcon = 'heroicon-o-users';
+    protected static ?string $navigationGroup = 'Resources';
+    protected static ?string $modelLabel = 'User';
+    protected static ?string $pluralModelLabel = 'Users';
 
-    public static function getNavigationGroup(): ?string
-    {
-        return __('Resources');
-    }
 
-    public static function getModelLabel(): string
-    {
-        return __('Users');
-    }
-
-    public static function getPluralModelLabel(): string
-    {
-        return __('Users');
-    }
-
-    public static function getNavigationBadge(): ?string
-    {
-        return static::getModel()::count();
-    }
 
     public static function form(Form $form): Form
     {
         return $form
             ->schema([
-                Forms\Components\Section::make()
+                Forms\Components\Section::make('User Details')
                     ->schema([
                         Forms\Components\TextInput::make('name')
-                            ->label('Name')
                             ->required()
                             ->maxLength(255),
 
                         Forms\Components\TextInput::make('email')
-                            ->label('Email')
                             ->email()
                             ->required()
                             ->unique(ignoreRecord: true)
                             ->maxLength(255),
 
-                        Forms\Components\DateTimePicker::make('email_verified_at')
-                            ->label('Email Verified At')
+                        Forms\Components\Select::make('role')
+                            ->options(User::getRoles())
+                            ->default(User::ROLE_ADMIN)
+                            ->required(),
+
+                        Forms\Components\Select::make('branch_id')
+                            ->label('Branch')
+                            ->relationship(
+                                name: 'branch',
+                                titleAttribute: 'branch_name',
+                                modifyQueryUsing: fn($query) => $query->orderBy('branch_name')
+                            )
+                            ->searchable()
+                            ->preload()
                             ->nullable(),
 
                         Forms\Components\TextInput::make('password')
-                            ->label('Password')
                             ->password()
-                            ->required()
+                            ->required(fn($operation) => $operation === 'create')
                             ->maxLength(255)
-                            ->dehydrateStateUsing(fn(string $state): string => Hash::make($state))
-                            ->visibleOn('create'),
-
-                        Forms\Components\TextInput::make('password')
-                            ->label('Password')
-                            ->password()
-                            ->maxLength(255)
-                            ->dehydrateStateUsing(fn(string $state): string => Hash::make($state))
-                            ->visibleOn('edit')
-                            ->nullable(),
-
-                        Forms\Components\TextInput::make('remember_token')
-                            ->label('Remember Token')
-                            ->maxLength(100)
-                            ->hiddenOn(['create', 'edit']),
+                            ->dehydrateStateUsing(fn($state) => Hash::make($state))
+                            ->dehydrated(fn($state) => filled($state))
+                            ->hidden(fn($operation) => $operation === 'view'),
                     ])
                     ->columns(2),
             ]);
@@ -89,61 +69,70 @@ class UserResource extends Resource
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('id')
-                    ->label('ID')
-                    ->sortable()
-                    ->searchable(),
-
                 Tables\Columns\TextColumn::make('name')
-                    ->label('Name')
-                    ->sortable()
-                    ->searchable(),
+                    ->searchable()
+                    ->sortable(),
 
                 Tables\Columns\TextColumn::make('email')
-                    ->label('Email')
+                    ->searchable()
+                    ->sortable(),
+
+                Tables\Columns\TextColumn::make('role')
+                    ->badge()
+                    ->color(fn(string $state): string => match ($state) {
+                        User::ROLE_ADMIN => 'danger',
+                        User::ROLE_USER => 'success',
+                        default => 'gray',
+                    })
+                    ->sortable(),
+
+                Tables\Columns\TextColumn::make('branch.branch_name')
+                    ->label('Branch')
                     ->sortable()
                     ->searchable(),
 
-                Tables\Columns\TextColumn::make('email_verified_at')
-                    ->label('Email Verified At')
-                    ->dateTime()
-                    ->sortable(),
-
                 Tables\Columns\TextColumn::make('created_at')
-                    ->label('Created At')
                     ->dateTime()
-                    ->sortable(),
-
-                Tables\Columns\TextColumn::make('updated_at')
-                    ->label('Updated At')
-                    ->dateTime()
-                    ->sortable(),
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
-                Tables\Filters\Filter::make('verified')
-                    ->label('Verified Users')
-                    ->query(fn(Builder $query): Builder => $query->whereNotNull('email_verified_at')),
+                Tables\Filters\SelectFilter::make('role')
+                    ->options(User::getRoles()),
 
-                Tables\Filters\Filter::make('unverified')
-                    ->label('Unverified Users')
-                    ->query(fn(Builder $query): Builder => $query->whereNull('email_verified_at')),
+                Tables\Filters\SelectFilter::make('branch_id')
+                    ->relationship('branch', 'branch_name')
+                    ->label('Branch'),
+
             ])
             ->actions([
-                Tables\Actions\EditAction::make(),
                 Tables\Actions\ViewAction::make(),
+                Tables\Actions\EditAction::make(),
+                Tables\Actions\DeleteAction::make(),
+                Tables\Actions\RestoreAction::make(),
             ])
             ->bulkActions([
-                Tables\Actions\DeleteBulkAction::make(),
+                Tables\Actions\BulkActionGroup::make([
+                    Tables\Actions\DeleteBulkAction::make(),
+                ]),
+            ])
+            ->emptyStateActions([
+                Tables\Actions\CreateAction::make(),
             ]);
+    }
+
+    public static function getRelations(): array
+    {
+        return [];
     }
 
     public static function getPages(): array
     {
         return [
             'index' => Pages\ListUsers::route('/'),
-            'create' => Pages\CreateUser::route('/create'),
-            'edit' => Pages\EditUser::route('/{record}/edit'),
-            'view' => Pages\ViewUser::route('/{record}'),
+            //'create' => Pages\CreateUser::route('/create'),
+            //'view' => Pages\ViewUser::route('/{record}'),
+            // 'edit' => Pages\EditUser::route('/{record}/edit'),
         ];
     }
 }

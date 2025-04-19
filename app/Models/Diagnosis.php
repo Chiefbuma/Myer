@@ -11,11 +11,17 @@ class Diagnosis extends Model
 
     protected $table = 'diagnosis'; // Explicitly set the table name
 
+
     protected $fillable = [
 
 
         'diagnosis_name',
+        'deleted_at', // Include for mass assignment if needed
 
+    ];
+
+    protected $casts = [
+        'deleted_at' => 'datetime', // Cast deleted_at as datetime
     ];
 
     protected $primaryKey = 'diagnosis_id'; // Set the primary key

@@ -52,6 +52,7 @@ return new class extends Migration
             $table->text('therapist_notes')->nullable();
             $table->decimal('revenue', 10, 2);
             $table->timestamps();
+            $table->softDeletes(); // Adds deleted_at column for soft deletes
         });
     }
 
